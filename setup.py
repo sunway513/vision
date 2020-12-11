@@ -84,13 +84,19 @@ def get_extensions():
 
     main_file = glob.glob(os.path.join(extensions_dir, '*.cpp'))
     source_cpu = glob.glob(os.path.join(extensions_dir, 'cpu', '*.cpp'))
-
-    is_rocm_pytorch = False
-    if torch.__version__ >= '1.5':
-        from torch.utils.cpp_extension import ROCM_HOME
-        is_rocm_pytorch = True if ((torch.version.hip is not None) and (ROCM_HOME is not None)) else False
-
+    
+    from torch.utils.cpp_extension import ROCM_HOME
+    is_rocm_pytorch = (
+        True if ((torch.version.hip is not None) and (ROCM_HOME is not None)) else False
+    )
     if is_rocm_pytorch:
+        hipify_ver = (
+        [int(x) for x in torch.utils.hipify.__version__.split(".")]
+        if hasattr(torch.utils.hipify, "__version__")
+        else [0, 0, 0]
+    )
+   
+    if is_rocm_pytorch and hipify_ver < [1, 0, 0]:
         hipify_python.hipify(
             project_directory=this_dir,
             output_directory=this_dir,
@@ -105,7 +111,6 @@ def get_extensions():
 
     else:
         source_cuda = glob.glob(os.path.join(extensions_dir, 'cuda', '*.cu'))
-
     sources = main_file + source_cpu
     extension = CppExtension
 
