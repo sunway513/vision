@@ -5,9 +5,6 @@
 #ifdef WITH_CUDA
 #include "cuda/vision_cuda.h"
 #endif
-#ifdef WITH_HIP
-#include "hip/vision_cuda.h"
-#endif
 
 at::Tensor DeformConv2d_forward(
     const at::Tensor& input,
@@ -20,7 +17,7 @@ at::Tensor DeformConv2d_forward(
     const int groups,
     const int offset_groups) {
   if (input.type().is_cuda()) {
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
     return DeformConv2d_forward_cuda(
         input.contiguous(),
         weight.contiguous(),
@@ -59,7 +56,7 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> DeformConv2d_backward
     const int groups,
     const int offset_groups) {
   if (grad.type().is_cuda()) {
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
     return DeformConv2d_backward_cuda(
         grad.contiguous(),
         input.contiguous(),

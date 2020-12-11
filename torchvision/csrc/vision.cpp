@@ -4,9 +4,6 @@
 #ifdef WITH_CUDA
 #include <cuda.h>
 #endif
-#ifdef WITH_HIP
-#include <hip/hip_runtime.h>
-#endif
 
 #include "DeformConv.h"
 #include "PSROIAlign.h"
