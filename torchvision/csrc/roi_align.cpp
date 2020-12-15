@@ -1,7 +1,7 @@
 #include "roi_align.h"
 #include <torch/extension.h>
 
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 #include <ATen/autocast_mode.h>
 #endif
 
@@ -32,7 +32,7 @@ at::Tensor roi_align(
       aligned);
 }
 
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 at::Tensor roi_align_autocast(
     const at::Tensor& input,
     const at::Tensor& rois,

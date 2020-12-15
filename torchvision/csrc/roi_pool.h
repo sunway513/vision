@@ -5,9 +5,6 @@
 #ifdef WITH_CUDA
 #include "cuda/roi_pool_kernel.h"
 #endif
-#ifdef WITH_HIP
-#include "hip/roi_pool_kernel.h"
-#endif
 
 namespace vision {
 namespace ops {
@@ -21,7 +18,7 @@ std::tuple<at::Tensor, at::Tensor> roi_pool(
     int64_t pooled_width);
 
 // Autocast Forward
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 std::tuple<at::Tensor, at::Tensor> roi_pool_autocast(
     const at::Tensor& input,
     const at::Tensor& rois,

@@ -77,7 +77,7 @@ TORCH_LIBRARY_IMPL(torchvision, CPU, m) {
 }
 
 // TODO: Place this in a hypothetical separate torchvision_cuda library
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 TORCH_LIBRARY_IMPL(torchvision, CUDA, m) {
   m.impl("deform_conv2d", deform_conv2d_forward_cuda);
   m.impl("_deform_conv2d_backward", deform_conv2d_backward_cuda);
@@ -94,7 +94,7 @@ TORCH_LIBRARY_IMPL(torchvision, CUDA, m) {
 #endif
 
 // Autocast only needs to wrap forward pass ops.
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 TORCH_LIBRARY_IMPL(torchvision, Autocast, m) {
   m.impl("deform_conv2d", deform_conv2d_autocast);
   m.impl("nms", nms_autocast);

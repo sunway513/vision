@@ -1,7 +1,7 @@
 #include "roi_pool.h"
 #include <torch/extension.h>
 
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 #include <ATen/autocast_mode.h>
 #endif
 
@@ -20,7 +20,7 @@ std::tuple<at::Tensor, at::Tensor> roi_pool(
   return op.call(input, rois, spatial_scale, pooled_height, pooled_width);
 }
 
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 std::tuple<at::Tensor, at::Tensor> roi_pool_autocast(
     const at::Tensor& input,
     const at::Tensor& rois,

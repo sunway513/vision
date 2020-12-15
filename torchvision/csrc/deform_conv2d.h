@@ -5,9 +5,7 @@
 #ifdef WITH_CUDA
 #include "cuda/deform_conv2d_kernel.h"
 #endif
-#ifdef WITH_HIP
-#include "hip/deform_conv2d_kernel.h"
-#endif
+
 
 namespace vision {
 namespace ops {
@@ -30,7 +28,7 @@ at::Tensor deform_conv2d(
     bool use_mask);
 
 // Autocast Forward
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 at::Tensor deform_conv2d_autocast(
     const at::Tensor& input,
     const at::Tensor& weight,

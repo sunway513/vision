@@ -102,7 +102,7 @@ at::Tensor nms_cuda(
       " and ",
       scores.size(0))
 
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
   at::cuda::CUDAGuard device_guard(dets.device());
 #else
   TORCH_CHECK(false, "Not compiled with GPU support");

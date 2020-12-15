@@ -1,7 +1,7 @@
 #include "nms.h"
 #include <torch/extension.h>
 
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 #include <ATen/autocast_mode.h>
 #endif
 
@@ -18,7 +18,7 @@ at::Tensor nms(
   return op.call(dets, scores, iou_threshold);
 }
 
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 at::Tensor nms_autocast(
     const at::Tensor& dets,
     const at::Tensor& scores,
