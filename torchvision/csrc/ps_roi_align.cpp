@@ -1,7 +1,7 @@
 #include "ps_roi_align.h"
 #include <torch/extension.h>
 
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 #include <ATen/autocast_mode.h>
 #endif
 
@@ -22,7 +22,7 @@ std::tuple<at::Tensor, at::Tensor> ps_roi_align(
       input, rois, spatial_scale, pooled_height, pooled_width, sampling_ratio);
 }
 
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 std::tuple<at::Tensor, at::Tensor> ps_roi_align_autocast(
     const at::Tensor& input,
     const at::Tensor& rois,

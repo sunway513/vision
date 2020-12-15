@@ -1,7 +1,7 @@
 #include "deform_conv2d.h"
 #include <torch/extension.h>
 
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 #include <ATen/autocast_mode.h>
 #endif
 
@@ -43,7 +43,7 @@ at::Tensor deform_conv2d(
       use_mask);
 }
 
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 at::Tensor deform_conv2d_autocast(
     const at::Tensor& input,
     const at::Tensor& weight,

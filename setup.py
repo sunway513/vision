@@ -142,21 +142,7 @@ def get_extensions():
         from torch.utils.cpp_extension import ROCM_HOME
         is_rocm_pytorch = True if ((torch.version.hip is not None) and (ROCM_HOME is not None)) else False
 
-    if is_rocm_pytorch:
-        hipify_python.hipify(
-            project_directory=this_dir,
-            output_directory=this_dir,
-            includes="torchvision/csrc/cuda/*",
-            show_detailed=True,
-            is_pytorch_extension=True,
-        )
-        source_cuda = glob.glob(os.path.join(extensions_dir, 'hip', '*.hip'))
-        # Copy over additional files
-        for file in glob.glob(r"torchvision/csrc/cuda/*.h"):
-            shutil.copy(file, "torchvision/csrc/hip")
-
-    else:
-        source_cuda = glob.glob(os.path.join(extensions_dir, 'cuda', '*.cu'))
+    source_cuda = glob.glob(os.path.join(extensions_dir, 'cuda', '*.cu'))
 
     sources = main_file + source_cpu
     extension = CppExtension

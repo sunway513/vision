@@ -5,9 +5,6 @@
 #ifdef WITH_CUDA
 #include "cuda/ps_roi_align_kernel.h"
 #endif
-#ifdef WITH_HIP
-#include "hip/ps_roi_align_kernel.h"
-#endif
 
 namespace vision {
 namespace ops {
@@ -22,7 +19,7 @@ std::tuple<at::Tensor, at::Tensor> ps_roi_align(
     int64_t sampling_ratio);
 
 // Autocast Forward
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 std::tuple<at::Tensor, at::Tensor> ps_roi_align_autocast(
     const at::Tensor& input,
     const at::Tensor& rois,

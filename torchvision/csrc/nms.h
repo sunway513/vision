@@ -5,9 +5,6 @@
 #ifdef WITH_CUDA
 #include "cuda/nms_kernel.h"
 #endif
-#ifdef WITH_HIP
-#include "hip/nms_kernel.h"
-#endif
 
 namespace vision {
 namespace ops {
@@ -19,7 +16,7 @@ at::Tensor nms(
     double iou_threshold);
 
 // Autocast Forward
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 at::Tensor nms_autocast(
     const at::Tensor& dets,
     const at::Tensor& scores,
