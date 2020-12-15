@@ -5,9 +5,6 @@
 #ifdef WITH_CUDA
 #include "cuda/roi_align_kernel.h"
 #endif
-#ifdef WITH_HIP
-#include "hip/roi_align_kernel.h"
-#endif
 
 namespace vision {
 namespace ops {
@@ -23,7 +20,7 @@ at::Tensor roi_align(
     bool aligned);
 
 // Autocast Forward
-#if defined(WITH_CUDA) || defined(WITH_HIP)
+#if defined(WITH_CUDA)
 at::Tensor roi_align_autocast(
     const at::Tensor& input,
     const at::Tensor& rois,
