@@ -1,10 +1,15 @@
 #pragma once
-#include "cpu/vision_cpu.h"
+
+#include "cpu/nms_kernel.h"
 
 #ifdef WITH_CUDA
-#include "cuda/vision_cuda.h"
+#include "cuda/nms_kernel.h"
 #endif
 
+namespace vision {
+namespace ops {
+
+// C++ Forward
 at::Tensor nms(
     const at::Tensor& dets,
     const at::Tensor& scores,
@@ -19,8 +24,6 @@ at::Tensor nms(
 #else
     AT_ERROR("Not compiled with GPU support");
 #endif
-  }
 
-  at::Tensor result = nms_cpu(dets, scores, iou_threshold);
-  return result;
-}
+} // namespace ops
+} // namespace vision

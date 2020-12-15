@@ -1,20 +1,16 @@
 import os
 import contextlib
+import sys
 import tempfile
 import torch
-import torchvision.datasets.utils as utils
 import torchvision.io as io
 from torchvision import get_video_backend
 import unittest
-import sys
 import warnings
+from urllib.error import URLError
 
 from common_utils import get_tmp_dir
 
-if sys.version_info < (3,):
-    from urllib2 import URLError
-else:
-    from urllib.error import URLError
 
 try:
     import av
@@ -22,6 +18,9 @@ try:
     io.video._check_av_available()
 except ImportError:
     av = None
+
+
+VIDEO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "videos")
 
 
 def _create_video_frames(num_frames, height, width):
@@ -63,10 +62,11 @@ def temp_video(num_frames, height, width, fps, lossless=False, video_codec=None,
         yield f.name, data
     os.unlink(f.name)
 
+
 @unittest.skipIf(get_video_backend() != "pyav" and not io._HAS_VIDEO_OPT,
                  "video_reader backend not available")
 @unittest.skipIf(av is None, "PyAV unavailable")
-class Tester(unittest.TestCase):
+class TestIO(unittest.TestCase):
     # compression adds artifacts, thus we add a tolerance of
     # 6 in 0-255 range
     TOLERANCE = 6
@@ -112,10 +112,10 @@ class Tester(unittest.TestCase):
         with temp_video(10, 300, 300, 5, lossless=True) as (f_name, data):
             pts, _ = io.read_video_timestamps(f_name)
             for start in range(5):
-                for l in range(1, 4):
-                    lv, _, _ = io.read_video(f_name, pts[start], pts[start + l - 1])
-                    s_data = data[start:(start + l)]
-                    self.assertEqual(len(lv), l)
+                for offset in range(1, 4):
+                    lv, _, _ = io.read_video(f_name, pts[start], pts[start + offset - 1])
+                    s_data = data[start:(start + offset)]
+                    self.assertEqual(len(lv), offset)
                     self.assertTrue(s_data.equal(lv))
 
             if get_video_backend() == "pyav":
@@ -131,10 +131,10 @@ class Tester(unittest.TestCase):
         with temp_video(100, 300, 300, 5, options=options) as (f_name, data):
             pts, _ = io.read_video_timestamps(f_name)
             for start in range(0, 80, 20):
-                for l in range(1, 4):
-                    lv, _, _ = io.read_video(f_name, pts[start], pts[start + l - 1])
-                    s_data = data[start:(start + l)]
-                    self.assertEqual(len(lv), l)
+                for offset in range(1, 4):
+                    lv, _, _ = io.read_video(f_name, pts[start], pts[start + offset - 1])
+                    s_data = data[start:(start + offset)]
+                    self.assertEqual(len(lv), offset)
                     self.assertTrue((s_data.float() - lv.float()).abs().max() < self.TOLERANCE)
 
             lv, _, _ = io.read_video(f_name, pts[4] + 1, pts[7])
@@ -147,20 +147,12 @@ class Tester(unittest.TestCase):
                 self.assertTrue((data[5:8].float() - lv.float()).abs().max() < self.TOLERANCE)
 
     def test_read_packed_b_frames_divx_file(self):
-        with get_tmp_dir() as temp_dir:
-            name = "hmdb51_Turnk_r_Pippi_Michel_cartwheel_f_cm_np2_le_med_6.avi"
-            f_name = os.path.join(temp_dir, name)
-            url = "https://download.pytorch.org/vision_tests/io/" + name
-            try:
-                utils.download_url(url, temp_dir)
-                pts, fps = io.read_video_timestamps(f_name)
+        name = "hmdb51_Turnk_r_Pippi_Michel_cartwheel_f_cm_np2_le_med_6.avi"
+        f_name = os.path.join(VIDEO_DIR, name)
+        pts, fps = io.read_video_timestamps(f_name)
 
-                self.assertEqual(pts, sorted(pts))
-                self.assertEqual(fps, 30)
-            except URLError:
-                msg = "could not download test file '{}'".format(url)
-                warnings.warn(msg, RuntimeWarning)
-                raise unittest.SkipTest(msg)
+        self.assertEqual(pts, sorted(pts))
+        self.assertEqual(fps, 30)
 
     def test_read_timestamps_from_packet(self):
         with temp_video(10, 300, 300, 5, video_codec='mpeg4') as (f_name, data):
@@ -205,10 +197,10 @@ class Tester(unittest.TestCase):
             pts, _ = io.read_video_timestamps(f_name, pts_unit='sec')
 
             for start in range(5):
-                for l in range(1, 4):
-                    lv, _, _ = io.read_video(f_name, pts[start], pts[start + l - 1], pts_unit='sec')
-                    s_data = data[start:(start + l)]
-                    self.assertEqual(len(lv), l)
+                for offset in range(1, 4):
+                    lv, _, _ = io.read_video(f_name, pts[start], pts[start + offset - 1], pts_unit='sec')
+                    s_data = data[start:(start + offset)]
+                    self.assertEqual(len(lv), offset)
                     self.assertTrue(s_data.equal(lv))
 
             container = av.open(f_name)
@@ -240,6 +232,7 @@ class Tester(unittest.TestCase):
             self.assertEqual(video_pts, [])
             self.assertIs(video_fps, None)
 
+    @unittest.skip("Temporarily disabled due to new pyav")
     def test_read_video_partially_corrupted_file(self):
         with temp_video(5, 4, 4, 5, lossless=True) as (f_name, data):
             with open(f_name, 'r+b') as f:
@@ -261,6 +254,39 @@ class Tester(unittest.TestCase):
             self.assertTrue(video[:3].equal(data[:3]))
             # and the last few frames are wrong
             self.assertFalse(video.equal(data))
+
+    @unittest.skipIf(sys.platform == 'win32', 'temporarily disabled on Windows')
+    def test_write_video_with_audio(self):
+        f_name = os.path.join(VIDEO_DIR, "R6llTwEh07w.mp4")
+        video_tensor, audio_tensor, info = io.read_video(f_name, pts_unit="sec")
+
+        with get_tmp_dir() as tmpdir:
+            out_f_name = os.path.join(tmpdir, "testing.mp4")
+            io.video.write_video(
+                out_f_name,
+                video_tensor,
+                round(info["video_fps"]),
+                video_codec="libx264rgb",
+                options={'crf': '0'},
+                audio_array=audio_tensor,
+                audio_fps=info["audio_fps"],
+                audio_codec="aac",
+            )
+
+            out_video_tensor, out_audio_tensor, out_info = io.read_video(
+                out_f_name, pts_unit="sec"
+            )
+
+            self.assertEqual(info["video_fps"], out_info["video_fps"])
+            self.assertTrue(video_tensor.equal(out_video_tensor))
+
+            audio_stream = av.open(f_name).streams.audio[0]
+            out_audio_stream = av.open(out_f_name).streams.audio[0]
+
+            self.assertEqual(info["audio_fps"], out_info["audio_fps"])
+            self.assertEqual(audio_stream.rate, out_audio_stream.rate)
+            self.assertAlmostEqual(audio_stream.frames, out_audio_stream.frames, delta=1)
+            self.assertEqual(audio_stream.frame_size, out_audio_stream.frame_size)
 
     # TODO add tests for audio
 
